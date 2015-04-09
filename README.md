@@ -7,7 +7,7 @@ C#ツールです。
 このCSVをリポジトリ内のhighcharts\chartにコピーしてからhighcharts\index.htmlをブラウザーで見ると
 グラフが確認出来ます。
 
-どんなグラフがでるかはQiitaを参照ください。
+どんなグラフがでるかは[Qiita](http://qiita.com/kawahira/private/0196c315642f4a72458f)を参照ください。
 
 # 実行方法
 
