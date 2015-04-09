@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html>
+<head>
+      <meta charset=Shift-JIS>
+      <script type="text/javascript" src='http://ajax.googleapis.com/ajax/libs/jquery/1.8.2/jquery.min.js'></script>
+      <script type="text/javascript" src="js/highcharts.js"></script>
+      <script type="text/javascript" src="js/exporting.js"></script>
+</head>
+<body>
+<div id='container' style="min-width: 300px; height: 600px; margin: 0 auto"></div>
+
+<script type="text/javascript">
+
+var chart;
+var task;
+var options =
+{
+	// 出力先を指定
+	chart :
+	{
+		type: 'bar',
+		renderTo : "container"
+	},
+	// タイトルを指定
+	title : {text: "Bug repoter"},
+	subtitle: { text: 'Source: Redmine'},
+	// x軸のラベルを指定
+	plotOptions:
+	{
+            bar: {
+                dataLabels: {
+                    enabled: true,
+                    format: '{point.y:.1f}%'
+                }
+            }
+	},
+                tooltip: {
+                    headerFormat: '<span style="font-size:11px">{series.name}</span><br>',
+                    pointFormat: '<span style="color:{point.color}">{point.name}</span>: <b>{point.y:.2f}%</b><br/>'
+                },
+	xAxis :
+	{
+		title: { text: "count" },
+		crosshair: true
+	},
+	yAxis : {title: {text: "tickets"},
+                   stackLabels: {
+                enabled: true,
+                style: {
+                    fontWeight: 'bold',
+                    color: (Highcharts.theme && Highcharts.theme.textColor) || 'gray'
+                }
+    	}
+	}
+}
+
+function draw() {
+	jQuery.get("bug-authors.csv", function(content) {
+		content = content.split(",");
+		var len = content.length/2;
+		var names = new Array(len);
+		var numeric = new Array(len);
+		for ( var i = 0 ; i < len ; i ++ )
+		{
+			names[i] = content[i*2];
+			numeric[i] = Number(content[(i*2)+1]);
+		}
+		options['xAxis'] = [{ categories: names,labels: {
+			style: {
+				fontSize: '10px',
+				fontFamily: 'Verdana, sans-serif'
+			}}}]
+		options['series'] = [{
+			name: "Bugs", data: numeric,
+            color: Highcharts.getOptions().colors[1]
+		}]
+		chart = new Highcharts.Chart(options);
+	});
+}
+
+// ページがロードされた後に、グラフを出力する
+document.body.onload = draw();
+
+</script>
+
+</body>
+</html>

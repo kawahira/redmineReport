@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html>
+<head>
+      <meta charset=utf-8>
+      <script type="text/javascript" src='http://ajax.googleapis.com/ajax/libs/jquery/1.8.2/jquery.min.js'></script>
+      <script type="text/javascript" src="js/highcharts.js"></script>
+      <script type="text/javascript" src="js/exporting.js"></script>
+</head>
+<body>
+<div id='container' style="min-width: 300px; height: 600px; margin: 0 auto"></div>
+
+<script type="text/javascript">
+
+var chart;
+var bug;
+var options =
+{
+	// 出力先を指定
+	chart :
+	{
+		type: 'column',
+		renderTo : "container"
+	},
+	// タイトルを指定
+	title : {text: "Old task ticket chart"},
+	subtitle: { text: 'Source: Redmine'},
+	// x軸のラベルを指定
+	plotOptions:
+	{
+            column: {
+                stacking: 'normal',
+                dataLabels: {
+                    enabled: true,
+                    color: (Highcharts.theme && Highcharts.theme.dataLabelsColor) || 'white',
+                    style: {
+                        textShadow: '0 0 3px black'
+                    }
+                }
+            }
+	},
+	tooltip: 
+	{
+            formatter: function () {
+                return '<b>' + this.x + '</b><br/>' +
+                    this.series.name + ': ' + this.y + '<br/>' +
+                    'Total: ' + this.point.stackTotal;
+            }
+	},
+	xAxis :
+	{
+		title: { text: "count" },
+		crosshair: true
+	},
+	yAxis : {title: {text: "tickets"},
+       min: 0,
+                   stackLabels: {
+                enabled: false,
+                style: {
+                    fontWeight: 'bold',
+                    color: (Highcharts.theme && Highcharts.theme.textColor) || 'gray'
+                }
+    	}
+	}
+}
+
+function draw() {
+	jQuery.get("task-remining-count.csv", function(content) {
+		content = content.split(",");
+		var cat = new Array(content.length/2);
+		bug = new Array(content.length/2);
+		for ( var i = 0 ; i < content.length / 2 ; i ++ )
+		{
+			cat[i] = content[i*2];
+			bug[i] = Number(content[(i*2)+1]);
+		}
+		options['xAxis'] = [{ categories: cat,labels: {
+			rotation: 90,
+			style: {
+				fontSize: '10px',
+				fontFamily: 'Verdana, sans-serif'
+			}}}]
+		options['series'] = [{name: "Task", data: bug}]
+		chart = new Highcharts.Chart(options);
+	});
+}
+
+// ページがロードされた後に、グラフを出力する
+document.body.onload = draw();
+
+</script>
+
+</body>
+</html>

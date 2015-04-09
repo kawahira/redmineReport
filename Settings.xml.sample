@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="shift-jis"?>
+<Settings>
+  <redmine-url>http://hogehoge-api.com</redmine-url>
+  <redmine-url-alias>https://hogehoge-com</redmine-url-alias>
+  <redmine-project>fugafuga</redmine-project>
+  <redmine-apikey>123456abcdefg123456abcdefg123456abcdefg</redmine-apikey>
+  <redmine-query-id>666</redmine-query-id>
+  <redmine-query-id-all-remining>777</redmine-query-id-all-remining>
+  <sprint-size>7</sprint-size>
+  <bug-keyword>バグ</bug-keyword>
+  </Settings>

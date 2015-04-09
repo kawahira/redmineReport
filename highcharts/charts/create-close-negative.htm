@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html>
+<head>
+      <meta charset=utf-8>
+      <script type="text/javascript" src='http://ajax.googleapis.com/ajax/libs/jquery/1.8.2/jquery.min.js'></script>
+      <script type="text/javascript" src="js/highcharts.js"></script>
+      <script type="text/javascript" src="js/exporting.js"></script>
+<body>
+<div id='container' style="min-width: 300px; height: 600px; margin: 0 auto"></div>
+
+<script type="text/javascript">
+
+var chart;
+var TaskClose;
+var BugClose;
+var TaskCreate;
+var options =
+{
+	// 出力先を指定
+	chart :
+	{
+		type: 'line',
+		renderTo : "container"
+	},
+	// タイトルを指定
+	title : {text: "Ticket open and close chart"},
+	subtitle: { text: 'Source: Redmine'},
+	// x軸のラベルを指定
+	plotOptions:
+	{
+            column: {
+                stacking: 'normal',
+                dataLabels: {
+                    enabled: true,
+                    color: (Highcharts.theme && Highcharts.theme.dataLabelsColor) || 'white',
+                    style: {
+                        textShadow: '0 0 3px black'
+                    }
+                }
+            }
+	},
+	tooltip: 
+	{
+            formatter: function () {
+                return '<b>' + this.x + '</b><br/>' +
+                    this.series.name + ': ' + this.y + '<br/>'
+            }
+	},
+	xAxis :
+	{
+		title: { text: "count" },
+		crosshair: true
+	},
+	yAxis : {title: {text: "tickets",min:0}}
+}
+
+function draw() {
+	jQuery.get("bug-collectiondate.csv", function(content) {
+		content = content.split(",");
+		options['xAxis'] = [{ categories: content,labels: {
+			rotation: 90,
+			style: {
+				fontSize: '10px',
+				fontFamily: 'Verdana, sans-serif'
+			}}}]
+		TaskCloseData()
+	});
+}
+
+function TaskCloseData() {
+	jQuery.get("task-closelist.csv", function(content) 
+	{
+		content = content.split(",");
+		for(i=0; i<content.length; i++)
+		{
+			content[i] = Number(content[i]);
+		}
+		TaskClose = content
+		BugCloseData()
+	});
+}
+
+function BugCloseData() {
+	jQuery.get("bug-closelist.csv", function(content) {
+		content = content.split(",");
+		for(i=0; i<content.length; i++)
+		{
+			content[i] = Number(content[i]);
+		}
+		BugClose = content
+		TaskCreateData();
+	});
+}
+
+function TaskCreateData() {
+	jQuery.get("task-createlist.csv", function(content) 
+	{
+		content = content.split(",");
+		for(i=0; i<content.length; i++)
+		{
+			content[i] = Number(content[i]);
+		}
+		TaskCreate = content
+		BugCreateData()
+	});
+}
+
+function BugCreateData() {
+	jQuery.get("bug-createlist.csv", function(content) {
+		content = content.split(",");
+		var BugCreate = new Array(content.length);
+		for(i=0; i<content.length; i++)
+		{
+			BugCreate[i] = Number(content[i]);
+		}
+		var Column = new Array(content.length);
+		var Velocity = new Array(content.length);
+		var Total = 0;
+		for(i=0; i<content.length; i++)
+		{
+			Column[i] = (TaskCreate[i]+BugCreate[i])-(TaskClose[i]+BugClose[i]);
+			Total += Column[i];
+		}
+		Total /= content.length;
+		for(i=0; i<content.length; i++)
+		{
+			Velocity[i] = Total;
+		}
+		options['series'] = [{
+			type: 'line',
+			name: "Velocity", data: Velocity,
+		},{
+			type: 'column',
+			name: "Throughput", data: Column
+		}]
+		chart = new Highcharts.Chart(options);
+	});
+}
+
+
+// ページがロードされた後に、グラフを出力する
+document.body.onload = draw();
+
+</script>
+
+</body>
+</html>

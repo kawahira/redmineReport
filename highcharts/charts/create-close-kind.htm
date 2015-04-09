@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html>
+<head>
+      <meta charset=utf-8>
+      <script type="text/javascript" src='http://ajax.googleapis.com/ajax/libs/jquery/1.8.2/jquery.min.js'></script>
+      <script type="text/javascript" src="js/highcharts.js"></script>
+      <script type="text/javascript" src="js/exporting.js"></script>
+<body>
+<div id='container' style="min-width: 300px; height: 600px; margin: 0 auto"></div>
+
+<script type="text/javascript">
+
+var chart;
+var TaskClose;
+var BugClose;
+var TaskCreate;
+var options =
+{
+	// 出力先を指定
+	chart :
+	{
+		type: 'line',
+		renderTo : "container"
+	},
+	// タイトルを指定
+	title : {text: "Ticket open and close chart ( Task & Bug )"},
+	subtitle: { text: 'Source: Redmine'},
+	// x軸のラベルを指定
+        plotOptions: {
+            line: {
+                dataLabels: {
+                    enabled: true
+                },
+                enableMouseTracking: false
+            }
+        },
+	tooltip: 
+	{
+            formatter: function () {
+                return '<b>' + this.x + '</b><br/>' +
+                    this.series.name + ': ' + this.y + '<br/>'
+            }
+	},
+	xAxis :
+	{
+		title: { text: "count" },
+		crosshair: true
+	},
+	yAxis : {title: {text: "tickets",min:0}}
+}
+
+function draw() {
+	jQuery.get("bug-collectiondate.csv", function(content) {
+		content = content.split(",");
+		options['xAxis'] = [{ categories: content,labels: {
+			rotation: 90,
+			style: {
+				fontSize: '10px',
+				fontFamily: 'Verdana, sans-serif'
+			}}}]
+		TaskCloseData()
+	});
+}
+
+function TaskCloseData() {
+	jQuery.get("task-closelist.csv", function(content) 
+	{
+		content = content.split(",");
+		for(i=0; i<content.length; i++)
+		{
+			content[i] = Number(content[i]);
+		}
+		TaskClose = content
+		BugCloseData()
+	});
+}
+
+function BugCloseData() {
+	jQuery.get("bug-closelist.csv", function(content) {
+		content = content.split(",");
+		for(i=0; i<content.length; i++)
+		{
+			content[i] = Number(content[i]);
+		}
+		BugClose = content
+		TaskCreateData();
+	});
+}
+
+function TaskCreateData() {
+	jQuery.get("task-createlist.csv", function(content) 
+	{
+		content = content.split(",");
+		for(i=0; i<content.length; i++)
+		{
+			content[i] = Number(content[i]);
+		}
+		TaskCreate = content
+		BugCreateData()
+	});
+}
+
+function BugCreateData() {
+	jQuery.get("bug-createlist.csv", function(content) {
+		content = content.split(",");
+		var BugCreate = new Array(content.length);
+		for(i=0; i<content.length; i++)
+		{
+			BugCreate[i] = Number(content[i]);
+		}
+		var Column = new Array(content.length);
+
+		for(i=0; i<content.length; i++)
+		{
+			Column[i] = (TaskClose[i]+BugClose[i]) - (TaskCreate[i]+BugCreate[i]);
+		}
+		var TaskCreateTotal = 0;
+		var BugCreateTotal = 0;
+		for(i=0; i<content.length; i++)
+		{
+			TaskCreateTotal += TaskCreate[i];
+			BugCreateTotal += BugCreate[i];
+		}
+		var total = BugCreateTotal + TaskCreateTotal;
+		TaskCreateTotal = Math.round((TaskCreateTotal / total) * 100);
+		BugCreateTotal = Math.round((BugCreateTotal / total) * 100);
+		options['series'] = [{
+			type: 'line',
+			name: "Task Open", data: TaskCreate
+		},{
+			type: 'line',
+			name: "Bug Open", data: BugCreate
+		},{
+			type: 'line',
+			name: "Bug Close", data: BugClose,
+		},{
+			type: 'line',
+			name: "Task Close", data: TaskClose,
+		}, {
+            type: 'pie',
+            name: 'Total creating',
+            data: [{
+                name: 'Tasks',
+                y: TaskCreateTotal,
+                color: Highcharts.getOptions().colors[0]
+            }, {
+                name: 'Bugs',
+                y: BugCreateTotal,
+                color: Highcharts.getOptions().colors[1]
+            }],
+            center: [100, 0],
+            size: 80,
+            showInLegend: true,
+            dataLabels: { enabled: true,format: '{point.name}: {point.y}%' }
+        }]
+		chart = new Highcharts.Chart(options);
+	});
+}
+
+
+// ページがロードされた後に、グラフを出力する
+document.body.onload = draw();
+
+</script>
+
+</body>
+</html>
