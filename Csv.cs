@@ -163,7 +163,7 @@ namespace RedmineToReport
             var div = (velocityClose - velocityCreate);
             var futurePoint = new List<float>();
             var futureDate = new List<string>();
-            if (div < 0.0f)
+            if (div <= 0.0f)
             {
                 div = startPoint;
             }
