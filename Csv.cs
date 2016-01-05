@@ -158,34 +158,54 @@ namespace RedmineToReport
 
             float startPoint = accumulationList[accumulationList.Count - 1];
             var startDate = collectionDateList[collectionDateList.Count - 1].Key;
-            var velocityClose = closeLists.Sum(c => c.Count)/(float) closeLists.Count;
-            var velocityCreate = createLists.Sum(c => c.Count)/(float) createLists.Count;
-            var div = (velocityClose - velocityCreate);
-            var futurePoint = new List<float>();
-            var futureDate = new List<string>();
-            if (div <= 0.0f)
             {
-                div = startPoint;
-            }
-            for (;;)
-            {
-                futurePoint.Add(startPoint);
-                var t = startDate.ToString(CultureInfo.InvariantCulture).Split(' ');
-                futureDate.Add(t[0]);
-                if (startPoint <= 0.0f)
+                var FutureLength = 8;   // 最新8つから取るようにする
+                var velocityClose = 0;
+                var velocityCreate = 0;
+                var startpoint = 0;
+                if (closeLists.Count > FutureLength)
                 {
-                    break;
+                    startpoint = closeLists.Count - FutureLength;
                 }
-                startPoint -= div;
-                startDate = startDate.AddDays(sprintSlize);
-                if (startPoint < 0.0f)
+                for (var i = startpoint; i < closeLists.Count; i++)
                 {
-                    startPoint = 0.0f;
+                    velocityClose += closeLists[i].Count;
                 }
+                startpoint = 0;
+                if (createLists.Count > FutureLength)
+                {
+                    startpoint = createLists.Count - FutureLength;
+                }
+                for (var i = startpoint; i < createLists.Count; i++)
+                {
+                    velocityCreate += createLists[i].Count;
+                }
+                var div = (velocityClose - velocityCreate);
+                var futurePoint = new List<float>();
+                var futureDate = new List<string>();
+                if (div <= 0)
+                {
+                    div = (int)startPoint;
+                }
+                for (;;)
+                {
+                    futurePoint.Add(startPoint);
+                    var t = startDate.ToString(CultureInfo.InvariantCulture).Split(' ');
+                    futureDate.Add(t[0]);
+                    if (startPoint <= 0.0f)
+                    {
+                        break;
+                    }
+                    startPoint -= div;
+                    startDate = startDate.AddDays(sprintSlize);
+                    if (startPoint < 0.0f)
+                    {
+                        startPoint = 0.0f;
+                    }
+                }
+                WriteList(prefixFileName + "futuredates.csv", futureDate);
+                WriteList(prefixFileName + "futurepoint.csv", futurePoint);
             }
-            WriteList(prefixFileName + "futuredates.csv", futureDate);
-            WriteList(prefixFileName + "futurepoint.csv", futurePoint);
-
             var trackerDictionaly = new Dictionary<string, int>();
             var totalLen = 0;
             foreach (var l in closeLists)
